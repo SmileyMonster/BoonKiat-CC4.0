@@ -9,6 +9,8 @@
 #Input files have been downloaded and uploaded into S3 bucket named "cc4-source-json"
 #Output files will be directed to S3 bucket named "cc4-destination" by default
 #Program will not work if default specified buckets and files do not exist in your S3
+#
+#Lambda test event left as default AWS Lambda event template during testing
 
 import json
 import boto3
