@@ -13,6 +13,7 @@
 import json
 import boto3
 import csv
+import operator
 
 s3 = boto3.client('s3')
 s3a = boto3.resource('s3')
@@ -40,12 +41,34 @@ def lambda_handler(event, context):
     countryCodeDict = csvReader(csvData)
     
     #2(i) Extract the following fields and store the data as .csv
+    #Sort output file base on 'User aggregate_rating' column
     dataExtractionOne(data, countryCodeDict, desiredDestination, desiredCsvNameOne)
+    sortCsv(desiredDestination, desiredCsvNameOne)
     
     #2(ii) Extract list of restaurants that have past event within the month of April 2017 and store the data as .csv
     dataExtractionTwo(data, desiredDestination, desiredCsvNameTwo)
     
     return 'Success!'
+
+#Function to read in csv file and sort, returns csv file
+def sortCsv(destinationBucket, outputFileName):
+    filePath = '/tmp/' + outputFileName
+    
+    #Read in csv file and sort base on 'User aggregate_rating' column
+    with open(filePath, "r", encoding="utf-8") as csvfile:
+        data = csv.reader(csvfile)
+        data = sorted(data, key=operator.itemgetter(5), reverse=True)
+
+    with open(filePath, "a", encoding="utf-8", newline='') as csvf:
+        #Clear file
+        csvf.truncate(0)
+        #Write sorted data back into same file
+        writer = csv.writer(csvf)
+        for rows in data:
+            writer.writerow(rows)
+            
+    #upload file from tmp to s3 key
+    s3a.meta.client.upload_file(filePath, destinationBucket, outputFileName)
 
 #Function to retrieve bucket
 def bucketReader(bucketIn, keyIn):
