@@ -7,7 +7,7 @@ CC4.0 Brain Team challenge
     (i)  Refer to 'output1.csv'  
     (ii) Refer to 'output2.csv'  
   
-3. Optional write-up challenge  
+3. Optional write-up challenge
     - Refer to 'CC4.0-3-Scenario-question.pdf'  
   
 4. Optional ETL challenge  
