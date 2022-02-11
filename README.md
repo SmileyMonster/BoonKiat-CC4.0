@@ -8,4 +8,4 @@ CC4.0 Brain Team challenge
 3. Optional write-up challenge
     - Refer to 'CC4.0-3-Scenario-question.pdf'  
 4. Optional ETL challenge  
-    - a
+    - Work in progress
