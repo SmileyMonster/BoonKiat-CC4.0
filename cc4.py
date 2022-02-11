@@ -7,6 +7,7 @@
 
 import json
 import csv
+import operator
 
 #main driver
 def main():
@@ -17,8 +18,23 @@ def main():
 
     #2(i) Extract the following fields and store the data as .csv
     dataExtractionOne(jsonData, countryCodeDict)
+    #Sort output file base on 'User aggregate_rating' column
+    sortCsv("DataExtraction.csv")
     #2(ii) Extract list of restaurants that have past event within the month of April 2017 and store the data as .csv
     dataExtractionTwo(jsonData)
+
+def sortCsv(fileIn):
+    with open(fileIn, mode='r', encoding='utf-8') as csvfile:
+        data = csv.reader(csvfile)
+        data = sorted(data, key=operator.itemgetter(5), reverse=True)
+
+    with open(fileIn, "a", encoding="utf-8", newline='') as csvf:
+        #Clear file
+        csvf.truncate(0)
+        #Write sorted data back inside file
+        writer = csv.writer(csvf)
+        for rows in data:
+            writer.writerow(rows)
 
 #Function to read JSON file
 def jsonReader(fileIn):
