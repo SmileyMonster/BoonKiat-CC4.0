@@ -10,8 +10,6 @@
 #Program will not work if specified input files do not exist in the same directory
 #Program will not work if "DataExtraction.csv" or "DataExtraction2.csv" is opened during code execution
 #Program will overwrite existing "DataExtraction.csv" and "DataExtraction2.csv" if files exists in the same directory
-#
-#Lambda test event left as default AWS Lambda event template during testing
 
 import json
 import csv
