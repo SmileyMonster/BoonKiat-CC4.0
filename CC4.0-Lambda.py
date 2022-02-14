@@ -1,14 +1,20 @@
 #Written on Python 3.6 in AWS Lambda environment
-# 
+#
 #Input source files
 #Restaurant data:
 #https://raw.githubusercontent.com/ashraf356/cc4braininterview/main/restaurant_data.json
 #Country Code:
 #https://github.com/ashraf356/cc4braininterview/blob/main/Country-Code.xlsx?raw=true
 #
+#To ensure Lambda have read and write permission in AWS IAM management
+#"S3AllRole" role must be assigned to CC4.0-Lambda.py
+#You can choose to create specified read and write roles to the lambda
+#
 #Input files have been downloaded and uploaded into S3 bucket named "cc4-source-json"
 #Output files will be directed to S3 bucket named "cc4-destination" by default
 #Program will not work if default specified buckets and files do not exist in your S3
+#Program will not work if specified specified S3 bucket does not exist
+#Program will overwrite existing "output1.csv" and "output2.csv" in destination bucket
 #
 #Lambda test event left as default AWS Lambda event template during testing
 
