@@ -4,6 +4,13 @@
 #https://raw.githubusercontent.com/ashraf356/cc4braininterview/main/restaurant_data.json
 #Country Code:
 #https://github.com/ashraf356/cc4braininterview/blob/main/Country-Code.xlsx?raw=true 
+#
+#Input files have been downloaded and placed into the same directory
+#Output files will be generated to the same directory named "DataExtraction.csv" and "DataExtraction2.csv"
+#Program will not work if specified input files do not exist in the same directory
+#Program will not work if "DataExtraction.csv" or "DataExtraction2.csv" is opened during code execution
+#
+#Lambda test event left as default AWS Lambda event template during testing
 
 import json
 import csv
