@@ -1,5 +1,5 @@
 #Written on Python 3.6 in AWS Lambda environment
-#
+# 
 #Input source files
 #Restaurant data:
 #https://raw.githubusercontent.com/ashraf356/cc4braininterview/main/restaurant_data.json
