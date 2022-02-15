@@ -9,3 +9,4 @@ CC4.0 Brain Team challenge
     - Refer to 'CC4.0-3-Scenario-question.pdf'  
 4. Optional ETL challenge  
     - Refer to 'CC4.0-ETL-Challenge.py'
+    - Refer to 'output-ETL-Challenge.csv' for output
