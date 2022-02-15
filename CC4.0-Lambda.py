@@ -20,16 +20,22 @@ import operator
 s3 = boto3.client('s3')
 s3a = boto3.resource('s3')
 
+'''
+Main event driver
+Args:
+    **Lamda runtime provided fields
+    param1: event object
+    param2: context object 
+Returns:
+    'Success'
+Raises:
+    Exceptions as 'Failed'
+'''
 def lambda_handler(event, context):
-    #replace desiredS3Source string with desired source bucket name, E.g "cc4-source-json"
-    #replace inputFile string with source file in uploaded to above provided bucket
     desiredS3Source = "cc4-source-json"
     inputJsonFile = "cc4.json"
     inputCsvFile = "Country-Code.csv"
     
-    #replace desiredDestination string with desired bucket location name, E.g "cc4-destination"
-    #replace desiredCsvName for CSV output file name, E.g "output1.csv"
-    #WARNING: existing file names in your S3 Bucket will be overriden
     desiredDestination = "cc4-destination"
     desiredCsvNameOne = "output1.csv"
     desiredCsvNameTwo = "output2.csv"
@@ -44,7 +50,6 @@ def lambda_handler(event, context):
         countryCodeDict = csvReader(csvData)
         
         #2(i) Extract the following fields and store the data as .csv
-        #Sort output file base on 'User aggregate_rating' column
         dataExtractionOne(data, countryCodeDict, desiredDestination, desiredCsvNameOne)
         sortCsv(desiredDestination, desiredCsvNameOne)
         
@@ -56,15 +61,16 @@ def lambda_handler(event, context):
         
     else:
         return 'Success!'
+
+
     
 '''
 Function to sort csv file by specified column
 Args:
     param1: (str)S3 destination bucket name
     param2: (str)file name in bucket
-    
 Returns:
-    .csv file sorted according to 'aggregate_rating' column
+    .csv file sorted according to 'aggregate_rating' column into S3 bucket
 '''
 def sortCsv(destinationBucket, outputFileName):
     filePath = '/tmp/' + outputFileName
@@ -89,16 +95,18 @@ def sortCsv(destinationBucket, outputFileName):
 '''
 Function to fetch input files from S3 bucket
 Args:
-    param1: (str)S3 bucket containing input files
-    param2: (str)Input file names
+    param1: String of S3 bucket containing input files
+    param2: String of Input file name
 Returns:
-    Object from retrieving file from specified bucket
+    Object of file from specified S3 bucket and file name
+Raises:
+    BucketNotFound: Invalid bucket name
+    KeyNotFound: Invalid file name
 '''
 def bucketReader(bucketIn, keyIn):
     bucket = bucketIn
     key = keyIn
     try:
-        #fetch file from s3 bucket
         response = s3.get_object(Bucket=bucket, Key=key)
 
     except Exception as e:
@@ -109,11 +117,19 @@ def bucketReader(bucketIn, keyIn):
         return response
 
 
-#Function to read JSON file
+
+'''
+Function to read JSON data from object
+Args:
+    param1: JSON file object
+Returns:
+    deserialized JSON data
+Raises:
+    JSONDecodeError: Invalid JSON file
+'''
 def jsonReader(jsonDataIn):
     response = jsonDataIn
     try:
-        #deserialize the content
         text = response["Body"].read().decode()
         data = json.loads(text)
 
@@ -124,7 +140,15 @@ def jsonReader(jsonDataIn):
     else:
         return data
 
-#Function to read csv file
+
+
+'''
+Function to read CSV data from object
+Args:
+    param1: CSV file object
+Returns:
+    Dictionary of CSV content
+'''
 def csvReader(csvDataIn):
     response = csvDataIn
     try:
@@ -139,7 +163,15 @@ def csvReader(csvDataIn):
     else:
         return outputDict
 
-#Function to check and replaces empty strings with "NA"
+
+
+'''
+Function to replace empty fields with 'NA'
+Args:
+    param1: List input
+Returns:
+    List
+'''
 def emptyCheck(inList):
     outList = []
     for item in inList:
@@ -150,6 +182,18 @@ def emptyCheck(inList):
     
     return outList
 
+
+'''
+#2(i) Extract the following fields and store the data as .csv
+Function to extract restaurant json file and country code csv file data
+Args:
+    param1: JSON file content (restaurant_data)
+    param2: Dictionary (Country-Code)
+    param3: String of S3 Bucket name to store output files
+    param4: String of output file name
+Returns:
+    .csv output file named (param4) into S3 bucket named (param3)
+'''
 def dataExtractionOne(inputJson, inputDict, destinationBucket, outputFileName):
     data = inputJson
     filePath = '/tmp/' + outputFileName
@@ -205,7 +249,20 @@ def dataExtractionOne(inputJson, inputDict, destinationBucket, outputFileName):
     except Exception as e:
         print(f'ERROR: \n {e}')
         raise e
-        
+
+
+
+'''
+#2(ii)  Extract list of restaurants that have past event within the month of 
+        April 2017 and store the data as .csv
+Function to extract restaurant json file data
+Args:
+    param1: JSON file content (restaurant_data)
+    param2: String of S3 Bucket name to store output files
+    param3: String of output file name
+Returns:
+    .csv output file named (param2) into S3 bucket named (param3)
+'''        
 def dataExtractionTwo(inputJson, destinationBucket, outputFileName):
     data = inputJson
     filePath = '/tmp/' + outputFileName
