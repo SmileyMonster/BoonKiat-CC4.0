@@ -1,22 +1,16 @@
-#Written on Python 3.6 in AWS Lambda environment
-#
-#Input source files
-#Restaurant data:
-#https://raw.githubusercontent.com/ashraf356/cc4braininterview/main/restaurant_data.json
-#Country Code:
-#https://github.com/ashraf356/cc4braininterview/blob/main/Country-Code.xlsx?raw=true
-#
-#To ensure Lambda have read and write permission in AWS IAM management
-#"S3AllRole" role must be assigned to CC4.0-Lambda.py
-#You can choose to create specified read and write roles to the lambda
-#
-#Input files have been downloaded and uploaded into S3 bucket named "cc4-source-json"
-#Output files will be directed to S3 bucket named "cc4-destination" by default
-#Program will not work if default specified buckets and files do not exist in your S3
-#Program will not work if specified specified S3 bucket does not exist
-#Program will overwrite existing "output1.csv" and "output2.csv" in destination bucket
-#
-#Lambda test event left as default AWS Lambda event template during testing
+'''
+Written on Python 3.6 in AWS Lambda environment
+
+Input source files
+Restaurant data:
+https://raw.githubusercontent.com/ashraf356/cc4braininterview/main/restaurant_data.json
+Country Code:
+https://github.com/ashraf356/cc4braininterview/blob/main/Country-Code.xlsx?raw=true
+
+Input files have been downloaded and uploaded into S3 bucket named "cc4-source-json"
+Output files will be directed to S3 bucket named "cc4-destination" by default
+Program will not work if default specified buckets and files do not exist in your S3
+'''
 
 import json
 import boto3
@@ -41,24 +35,37 @@ def lambda_handler(event, context):
     desiredCsvNameTwo = "output2.csv"
 
     #retrieve bucket and read in json data
-    jsonData = bucketReader(desiredS3Source, inputJsonFile)
-    data = jsonReader(jsonData)
+    try:
+        jsonData = bucketReader(desiredS3Source, inputJsonFile)
+        data = jsonReader(jsonData)
+        
+        #retrieve bucket and read in csv data to dictionary
+        csvData = bucketReader(desiredS3Source, inputCsvFile)
+        countryCodeDict = csvReader(csvData)
+        
+        #2(i) Extract the following fields and store the data as .csv
+        #Sort output file base on 'User aggregate_rating' column
+        dataExtractionOne(data, countryCodeDict, desiredDestination, desiredCsvNameOne)
+        sortCsv(desiredDestination, desiredCsvNameOne)
+        
+        #2(ii) Extract list of restaurants that have past event within the month of April 2017 and store the data as .csv
+        dataExtractionTwo(data, desiredDestination, desiredCsvNameTwo)
     
-    #retrieve bucket and read in csv data to dictionary
-    csvData = bucketReader(desiredS3Source, inputCsvFile)
-    countryCodeDict = csvReader(csvData)
+    except Exception as err:
+        return 'Failed!'
+        
+    else:
+        return 'Success!'
     
-    #2(i) Extract the following fields and store the data as .csv
-    #Sort output file base on 'User aggregate_rating' column
-    dataExtractionOne(data, countryCodeDict, desiredDestination, desiredCsvNameOne)
-    sortCsv(desiredDestination, desiredCsvNameOne)
+'''
+Function to sort csv file by specified column
+Args:
+    param1: (str)S3 destination bucket name
+    param2: (str)file name in bucket
     
-    #2(ii) Extract list of restaurants that have past event within the month of April 2017 and store the data as .csv
-    dataExtractionTwo(data, desiredDestination, desiredCsvNameTwo)
-    
-    return 'Success!'
-
-#Function to read in csv file and sort, returns csv file
+Returns:
+    .csv file sorted according to 'aggregate_rating' column
+'''
 def sortCsv(destinationBucket, outputFileName):
     filePath = '/tmp/' + outputFileName
     
@@ -72,13 +79,21 @@ def sortCsv(destinationBucket, outputFileName):
         csvf.truncate(0)
         #Write sorted data back into same file
         writer = csv.writer(csvf)
-        for rows in data:
-            writer.writerow(rows)
+        writer.writerows(data)
             
     #upload file from tmp to s3 key
     s3a.meta.client.upload_file(filePath, destinationBucket, outputFileName)
 
-#Function to retrieve bucket
+
+
+'''
+Function to fetch input files from S3 bucket
+Args:
+    param1: (str)S3 bucket containing input files
+    param2: (str)Input file names
+Returns:
+    Object from retrieving file from specified bucket
+'''
 def bucketReader(bucketIn, keyIn):
     bucket = bucketIn
     key = keyIn
@@ -86,11 +101,13 @@ def bucketReader(bucketIn, keyIn):
         #fetch file from s3 bucket
         response = s3.get_object(Bucket=bucket, Key=key)
 
-        return response
-        
     except Exception as e:
-        print(e)
+        print(f'ERROR: \n {e}')
         raise e
+
+    else:
+        return response
+
 
 #Function to read JSON file
 def jsonReader(jsonDataIn):
@@ -99,12 +116,13 @@ def jsonReader(jsonDataIn):
         #deserialize the content
         text = response["Body"].read().decode()
         data = json.loads(text)
-    
-        return data
-        
+
     except Exception as e:
-        print(e)
+        print(f'ERROR: \n {e}')
         raise e
+    
+    else:
+        return data
 
 #Function to read csv file
 def csvReader(csvDataIn):
@@ -114,11 +132,12 @@ def csvReader(csvDataIn):
         data = csv.reader(text)
         outputDict = {rows[0]:rows[1] for rows in data}
     
-        return outputDict
-        
     except Exception as e:
-        print(e)
+        print(f'ERROR: \n {e}')
         raise e
+    
+    else:
+        return outputDict
 
 #Function to check and replaces empty strings with "NA"
 def emptyCheck(inList):
@@ -179,13 +198,12 @@ def dataExtractionOne(inputJson, inputDict, destinationBucket, outputFileName):
                             writer.writerow(csvLine)
                             #print(csvLine)
                     i += 1
-                else:
-                    continue
+
         #upload file from tmp to s3 key
         s3a.meta.client.upload_file(filePath, destinationBucket, outputFileName)
         
     except Exception as e:
-        print(e)
+        print(f'ERROR: \n {e}')
         raise e
         
 def dataExtractionTwo(inputJson, destinationBucket, outputFileName):
@@ -256,14 +274,11 @@ def dataExtractionTwo(inputJson, destinationBucket, outputFileName):
                                             csvLine = [e_Id, r_Id, r_Name, e_PhotoUrl, e_Title, e_Start, e_End]
                                             csvLineChecked = emptyCheck(csvLine)
                                             writer.writerow(csvLineChecked)
-                        else:
-                            continue
                     i += 1
-                else:
-                    continue
+
         #upload file from tmp to s3 key
         s3a.meta.client.upload_file(filePath, destinationBucket, outputFileName)
         
     except Exception as e:
-        print(e)
+        print(f'ERROR: \n {e}')
         raise e
