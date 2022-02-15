@@ -1,0 +1,9 @@
+,User aggregate_rating,User aggregate_rating,User aggregate_rating
+,count,min,max
+Rating text,,,
+Excellent,194,4.5,4.9
+Very Good,490,4.0,4.4
+Good,346,3.5,3.9
+Average,119,2.5,3.4
+Poor,5,2.2,2.4
+Not rated,26,0.0,0.0
